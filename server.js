@@ -447,6 +447,27 @@ io.on('connection', (socket) => {
         broadcastState();
     });
 
+    socket.on('requestRestart', () => {
+        if (!gameOver) return;
+
+        // Reset the core game state
+        resetGame();
+
+        // Re-sync hands directly to both connected slots
+        for (const [slotNum, sockId] of Object.entries(playerSlots)) {
+            if (sockId) {
+                io.to(sockId).emit('handSync', {
+                    hand: playerHands[slotNum],
+                    hasCalledUhOh: false
+                });
+            }
+        }
+
+        // Notify all clients to clear their win banners and render the fresh board
+        io.emit('gameRestarted');
+        broadcastState();
+    });
+
     socket.on('disconnect', () => {
         for (const [num, id] of Object.entries(playerSlots)) {
             if (id === socket.id) {

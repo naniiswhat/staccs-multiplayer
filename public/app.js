@@ -97,9 +97,68 @@ socket.on('uhOhAnnounced', (data) => showToast(`Player ${data.playerNum} calls U
 
 socket.on('playerWon', (data) => {
     const isMe = (data.winner === myPlayerNum);
-    document.getElementById('hud').innerHTML = `<h2 style="color: #facc15; font-size: 2rem;">${isMe ? "YOU WIN! 🎉" : `PLAYER ${data.winner} WINS! 🎉`}</h2>`;
+    document.getElementById('hud').innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <h2 style="color: #facc15; font-size: 1.8rem; margin: 0;">
+                ${isMe ? "YOU WIN! 🎉" : `PLAYER ${data.winner} WINS! 🎉`}
+            </h2>
+            <button id="btnRestart" class="btn-action" style="background: #22c55e; color: white;">
+                Play Again
+            </button>
+        </div>
+    `;
     document.getElementById('playerHand').innerHTML = '';
     showToast(isMe ? "VICTORY!" : `Player ${data.winner} takes the game!`);
+
+    document.getElementById('btnRestart')?.addEventListener('click', () => {
+        socket.emit('requestRestart');
+    });
+});
+
+socket.on('gameRestarted', () => {
+    // Reconstruct the default HUD elements
+    document.getElementById('hud').innerHTML = `
+        <h2 id="turnDisplay">Player 1's Turn</h2>
+        <button id="btnUhOh" class="btn-action" style="background: #facc15; color: #111827; display: none;">UH OH!</button>
+        <button id="btnCatch" class="btn-action" style="background: #ef4444; color: white; display: none;">CATCH!</button>
+        <button id="btnGive" class="btn-action" style="background: #a855f7; color: white; display: none;">Give Cards</button>
+        <button id="btnSort" class="btn-action" style="background: #3b82f6; color: white;">Sort: Suit</button>
+        <button id="btnDraw" class="btn-action">Draw 1 Card</button>
+    `;
+
+    // Reattach listeners to newly created HUD elements
+    document.getElementById('btnDraw')?.addEventListener('click', () => {
+        if (!myPlayerNum) return;
+        socket.emit('drawCard');
+    });
+
+    document.getElementById('btnUhOh')?.addEventListener('click', () => {
+        if (!myPlayerNum || hasCalledUhOh) return;
+        hasCalledUhOh = true;
+        socket.emit('callUhOh');
+        renderHand();
+    });
+
+    document.getElementById('btnCatch')?.addEventListener('click', () => {
+        if (!myPlayerNum) return;
+        socket.emit('catchUhOh');
+    });
+
+    document.getElementById('btnSort')?.addEventListener('click', () => {
+        if (!myPlayerNum || myHand.length === 0) return;
+        socket.emit('sortHand', currentSort);
+        currentSort = currentSort === 'suit' ? 'value' : 'suit';
+        document.getElementById('btnSort').innerText = `Sort: ${currentSort === 'suit' ? 'Suit' : 'Value'}`;
+    });
+
+    document.getElementById('btnGive')?.addEventListener('click', () => {
+        if (!myPlayerNum || !givePending) return;
+        const required = Math.min(givePending.count, myHand.length);
+        if (selectedCardIndices.length !== required) return showToast(`Select exactly ${required} cards to give!`);
+        socket.emit('submitGiveCards', selectedCardIndices);
+    });
+
+    showToast("New Game Started!");
 });
 
 // ==========================================
