@@ -1,0 +1,386 @@
+/* =========================================
+   STACCS - ISOMETRIC 3D ENGINE
+   ========================================= */
+
+:root {
+    --bg-color: #1a4f8b;
+    --card-width: 120px;
+    --card-height: 138px;
+
+    --surface-top: #ffffff;
+    --surface-face: #e5e7eb;
+    --surface-side: #d1d5db;
+
+    --text-dark: #111827;
+    --text-red: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, sans-serif;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-color);
+    overflow: hidden;
+    color: white;
+}
+
+/* --- THE GAME BOARD --- */
+#gameBoard {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    transform-origin: center;
+    cursor: grab;
+}
+
+#gameBoard:active {
+    cursor: grabbing;
+}
+
+/* --- THE STACCS CARD --- */
+.stacc-card {
+    position: absolute;
+    width: var(--card-width);
+    height: var(--card-height);
+    transform-origin: 50% 75%;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    filter: drop-shadow(0px 10px 10px rgba(0, 0, 0, 0.4));
+}
+
+.stacc-card:hover {
+    filter: drop-shadow(0px 15px 15px rgba(0, 0, 0, 0.6)) brightness(1.1);
+    z-index: 9999 !important;
+}
+
+.cube-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* --- THE 3 SURFACES --- */
+.surface {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-weight: 900;
+}
+
+.surface:hover {
+    filter: brightness(1.15);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.6);
+    z-index: 10;
+}
+
+.surface.top {
+    background-color: var(--surface-top);
+    clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);
+}
+
+.surface.face {
+    background-color: var(--surface-face);
+    clip-path: polygon(0% 25%, 50% 50%, 50% 100%, 0% 75%);
+}
+
+.surface.side {
+    background-color: var(--surface-side);
+    clip-path: polygon(50% 50%, 100% 25%, 100% 75%, 50% 100%);
+}
+
+.suit-hearts,
+.suit-diamonds {
+    color: var(--text-red) !important;
+}
+
+.suit-spades,
+.suit-clubs {
+    color: var(--text-dark) !important;
+}
+
+/* --- UI HUD --- */
+#hud {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 16px 24px;
+    border-radius: 12px;
+    display: flex;
+    gap: 16px;
+    pointer-events: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    align-items: center;
+}
+
+/* --- PLAYER HAND UI --- */
+#playerHand {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10001;
+    pointer-events: auto;
+}
+
+.hand-card {
+    width: 64px;
+    height: 96px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border 0.1s;
+    border: 3px solid transparent;
+}
+
+.hand-card:hover {
+    transform: translateY(-10px);
+}
+
+.hand-card.selected {
+    border-color: #facc15;
+    transform: translateY(-20px) scale(1.1);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.btn-action {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-action:hover {
+    background: #dc2626;
+}
+
+/* --- ERROR FEEDBACK & UI TOAST --- */
+@keyframes shakeError {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-4px);
+        background-color: #fca5a5;
+    }
+
+    40%,
+    80% {
+        transform: translateX(4px);
+        background-color: #fca5a5;
+    }
+}
+
+.shake-error {
+    animation: shakeError 0.4s ease-in-out;
+}
+
+#toastMsg {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background-color: var(--text-red);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10005;
+}
+
+#toastMsg.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* --- WILD CARD MODAL & LOCKED STATE --- */
+.stacc-card.locked {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.2)) grayscale(50%);
+    z-index: 0 !important;
+}
+
+#wildModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: var(--text-dark);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 10006;
+    display: none;
+    text-align: center;
+}
+
+#wildModal.show {
+    display: block;
+}
+
+.suit-btn {
+    font-size: 2rem;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background: #f9fafb;
+    transition: all 0.2s;
+}
+
+.suit-btn:hover {
+    background: #e5e7eb;
+    border-color: var(--text-dark);
+}
+
+.suit-btn.red {
+    color: var(--text-red);
+}
+
+.suit-btn.black {
+    color: var(--text-dark);
+}
+
+
+/* =========================================
+   CLEAN ISOMETRIC TEXT & CORNER INDICES
+   ========================================= */
+
+.watermark,
+.text-content,
+.index-mark {
+    position: absolute;
+    line-height: 0;
+}
+
+.watermark {
+    opacity: 0.25;
+    z-index: 0;
+}
+
+.text-content {
+    z-index: 1;
+    font-weight: 900;
+}
+
+.index-mark {
+    z-index: 2;
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+/* --- PHYSICAL TOP (CEILING) --- */
+.surface.top .watermark,
+.surface.top .text-content,
+.surface.top .index-mark {
+    transform: translate(-50%, -50%) skewX(-30deg) scaleY(0.866) rotate(-30deg);
+}
+
+.surface.top .watermark,
+.surface.top .text-content {
+    top: 25%;
+    left: 50%;
+}
+
+.surface.top .watermark {
+    font-size: 4.5rem;
+}
+
+.surface.top .text-content {
+    font-size: 2.5rem;
+}
+
+.surface.top .index-mark {
+    top: 18%;
+    left: 30%;
+}
+
+/* Safely tucked into the left corner */
+
+/* --- PHYSICAL FACE (LEFT) --- */
+.surface.face .watermark,
+.surface.face .text-content,
+.surface.face .index-mark {
+    transform: translate(-50%, -50%) skewY(30deg) scaleX(0.866);
+}
+
+.surface.face .watermark,
+.surface.face .text-content {
+    top: 62.5%;
+    left: 28%;
+}
+
+/* Pushed slightly right for optical balance */
+.surface.face .watermark {
+    font-size: 4.5rem;
+}
+
+.surface.face .text-content {
+    font-size: 2.5rem;
+}
+
+.surface.face .index-mark {
+    top: 40%;
+    left: 16%;
+}
+
+/* Safe top-left */
+
+/* --- PHYSICAL SIDE (RIGHT) --- */
+.surface.side .watermark,
+.surface.side .text-content,
+.surface.side .index-mark {
+    transform: translate(-50%, -50%) skewY(-30deg) scaleX(0.866);
+}
+
+.surface.side .watermark,
+.surface.side .text-content {
+    top: 62.5%;
+    left: 72%;
+}
+
+/* Pushed slightly left for optical balance */
+.surface.side .watermark {
+    font-size: 4.5rem;
+}
+
+.surface.side .text-content {
+    font-size: 2.5rem;
+}
+
+.surface.side .index-mark {
+    top: 40%;
+    left: 84%;
+}
+
+/* Safe top-right */

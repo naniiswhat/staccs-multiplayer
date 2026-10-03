@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STACCS - Digital Edition</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- The infinite panning board -->
+    <div id="gameBoard"></div>
+
+    <!-- Player's Hand -->
+    <div id="playerHand"></div>
+
+    <!-- UI Overlay -->
+    <div id="hud">
+        <h2 id="turnDisplay">P1 Turn</h2>
+        <button id="btnUhOh" class="btn-action" style="background: #facc15; color: #111827; display: none;">UH
+            OH!</button>
+        <button id="btnCatch" class="btn-action"
+            style="background: #ef4444; color: white; display: none;">CATCH!</button>
+        <button id="btnGive" class="btn-action" style="background: #a855f7; color: white; display: none;">Give
+            Cards</button>
+        <button id="btnSort" class="btn-action" style="background: #3b82f6; color: white;">Sort: Suit</button>
+        <button id="btnDraw" class="btn-action">Draw 1 Card</button>
+    </div>
+
+    <!-- Error Notification -->
+    <div id="toastMsg">Invalid Move!</div>
+
+    <!-- Wild Card Selection Modal -->
+    <div id="wildModal">
+        <h2>Wild Played!</h2>
+        <!-- Step 1: Suit -->
+        <div id="wildStep1">
+            <p style="margin-bottom: 16px;">1. Choose the new active suit:</p>
+            <div>
+                <button class="suit-btn black" onclick="selectWildSuit('spades')">♠</button>
+                <button class="suit-btn red" onclick="selectWildSuit('hearts')">♥</button>
+                <button class="suit-btn black" onclick="selectWildSuit('clubs')">♣</button>
+                <button class="suit-btn red" onclick="selectWildSuit('diamonds')">♦</button>
+            </div>
+        </div>
+        <!-- Step 2: Rotation -->
+        <div id="wildStep2" style="display: none;">
+            <p style="margin-bottom: 16px;">2. Rotate to a new direction:</p>
+            <div>
+                <button class="suit-btn black" style="font-size: 1rem; width: 140px;" onclick="resolveWild(1)">↘ Rotate
+                    Right</button>
+                <button class="suit-btn black" style="font-size: 1rem; width: 140px;" onclick="resolveWild(2)">↙ Rotate
+                    Left</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
